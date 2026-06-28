@@ -1,0 +1,168 @@
+---
+title: "M01-2-Introduction to Literate Programming-Application Assignment"
+author: "Alexa Bueno"
+date: '`r format(Sys.time())`'
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    number-sections: true
+    code-line-numbers: true
+    code-fold: false
+    code-link: true
+    embed-resources: true
+editor: visual
+execute:
+  freeze: auto
+  warning: false
+---
+
+# M01-2 Application Assignment
+
+## Ex 1
+
+> Create a variable called X and assign the text "This is my first assignment" to it.
+
+```{r}
+X <- "This is my first assignment"
+X
+```
+
+## Ex 2: Adding Texts in Base R
+
+### Ex 2.1 Learning `paste()`
+
+::: callout-tip
+I used a few examples to see how `paste()` and `paste0()` work differently.
+:::
+
+```{r}
+paste("Hello", "world")
+paste("Hello", "world", sep = "-")
+paste0("Hello", "world")
+```
+
+### Ex 2.2 Adding text to `X`
+
+```{r}
+X <- paste(X, "and I'm loving it!")
+X
+```
+
+## Ex 3
+
+> Create a vector called Y with the numbers 2, 3, 4, and 5. Then multiply the vector by 2.
+
+```{r}
+Y <- c(2, 3, 4, 5)
+Y <- Y * 2
+Y
+```
+
+## Ex 4
+
+> Print both the variable `X` and the vector `Y`.
+
+```{r}
+X
+Y
+```
+
+## Ex 5
+
+> Show the maximum and minimum value of `Y`.
+
+```{r}
+max(Y)
+min(Y)
+```
+
+## Ex 6
+
+> Load the `ggplot2` package and look at the first six rows of `economics`.
+
+```{r}
+# install.packages("ggplot2")
+library(ggplot2)
+
+head(economics)
+```
+
+## Ex 7
+
+### Understanding the `economics` Data
+
+The `economics` data has six variables:
+
+- `date`: the month and year of the observation
+- `pce`: personal consumption expenditures
+- `pop`: total population
+- `psavert`: personal savings rate
+- `uempmed`: median duration of unemployment
+- `unemploy`: number of unemployed people
+
+I decided to compare `unemploy` and `uempmed` because I wanted to see if more unemployment is connected to people staying unemployed longer.
+
+```{r}
+plot <- ggplot(economics, aes(x = unemploy, y = uempmed)) +
+  geom_point()
+
+plot +
+  labs(
+    title = "Unemployment and Duration of Unemployment",
+    x = "Number of Unemployed People",
+    y = "Median Duration of Unemployment"
+  )
+```
+
+## Ex 8
+
+> I recreated the chart using the pipe operator.
+
+```{r}
+#| label: fig-unemployment
+#| fig-cap: "Scatterplot showing unemployment and median duration of unemployment."
+#| fig-width: 5
+#| fig-asp: 0.6
+
+economics |>
+  ggplot(aes(x = unemploy, y = uempmed)) +
+  geom_point() +
+  labs(
+    title = "Unemployment and Duration of Unemployment",
+    x = "Number of Unemployed People",
+    y = "Median Duration of Unemployment"
+  )
+```
+
+## Ex 9
+
+::: callout-note
+In @fig-unemployment, it looks like there is a positive relationship between unemployment and median unemployment duration. When the number of unemployed people is higher, the median amount of time people stay unemployed also seems to be higher.
+:::
+
+## Ex 10
+
+::: callout-important
+I tried to organize this codebook so it would be easier to read later.
+:::
+
+### What I used in this report
+
+1.  I used headings with `#`, `##`, and `###`.
+2.  I used **bold text** for emphasis.
+3.  I used *italicized text* in the report.
+4.  I used `callout-tip` for a hint/note.
+5.  I used `callout-note` to explain my finding.
+6.  I used `callout-important` for an important organization note.
+7.  I used blockquotes for some task instructions.
+8.  I used backticks around R functions like `paste()` and `ggplot()`.
+9.  I cross-referenced the figure with @fig-unemployment.
+10. I used `#|` options inside a code chunk.
+11. I added a table of contents in the YAML header.
+12. I used numbered sections in the YAML header.
+13. I added a figure caption.
+14. I used separate code chunks for each question.
+15. I used bullet points to explain the variables.
+
+Overall, this assignment helped me practice putting code, notes, and output together in one Quarto document.
