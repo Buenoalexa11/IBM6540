@@ -1,0 +1,199 @@
+---
+title: "M05-Visualizing Data with Tables"
+author: "Alexa Bueno"
+date: '`r format(Sys.time())`'
+format: 
+  html: 
+    toc: true
+    toc-depth: 3
+    toc-expand: true
+    number-sections: true
+    code-link: true
+    embed-resources: true
+    theme: cosmo
+    code-fold: show
+    code-overflow: wrap
+    code-tools: true
+editor: visual
+execute: 
+  freeze: auto
+  warning: false
+  message: false
+---
+
+# Introduction
+
+> "Visualizing Data with Tables" module reflection and practical table demonstration using `{gt}` and `{gtExtras}`.
+
+------------------------------------------------------------------------
+
+# Prompt 1: Short Essay on Visualizing Data with Tables
+
+## Prompt text
+
+> **Prompt 1:** Write a short essay on the following:
+>
+> 1.  Summarize what you learned from the videos you watched.
+> 2.  What did you like about the `gt` and `gtExtra` packages demonstrated in the videos?
+> 3.  How do tables complement charts for data visualization?
+> 4.  Under what circumstances would you prefer to use tables rather than charts to visualize data?
+
+## Reflection & Essay
+
+::: panel-tabset
+### Video Summary
+
+Across the two assigned videos (*"Making high-quality tables in R with the gt package: a conversation with Tom Mock"* and *"Create fantastic tables using gtExtras in R"* by Greg Martin), several core design and technical principles were highlighted:
+
+- **The Anatomy and Grammar of Tables:** `{gt}` treats table building similar to how `{ggplot2}` treats graphics. Tables consist of structured parts: stub, stubhead, column spanners, column headers, data cells, source notes, and footnotes.
+- **Bending the Rules of Tidy Data:** While long, "tidy" data is optimal for backend data analysis and modeling, presentation-ready tables often require reshaping data into a wider format for human readability.
+- **Alignment Rules:** Numbers must be right-aligned so that decimal places line up vertically, allowing immediate comparison of magnitude. Text and headers should be left-aligned to accommodate variable length and maintain a clean vertical scanning axis.
+- **Subtle Dividers and Data-to-Ink Ratio:** Heavy gridlines create visual noise. Minimizing borders and using light gray or white background fills allows important content—like summary rows or averages—to stand out.
+- **Conditional Highlighting and Precision:** Table precision should match domain necessity (usually 1–2 decimal places) rather than showing full floating-point output. Functions like `tab_style()` allow automated conditional formatting (e.g., highlighting negative changes in red or shading outliers).
+
+### `gt` and `gtExtra` Highlights
+
+What makes `{gt}` and `{gtExtras}` uniquely powerful is their declarative, pipeline-friendly architecture:
+
+- **Declarative API:** Integration with the `{tidyverse}` pipe operator (`|>`) allows data wrangling (like `group_by()` and `summarise()`) to flow directly into visual design layers.
+- **`gtExtras` Boilerplate Reduction:** Setting up custom fonts, borders, and paddings for themes like *538* or *The New York Times* takes 30–40 lines of repeated code. `{gtExtras}` condenses these into single wrapper functions like `gt_theme_538()`.
+- **Inline Sparklines & Distributions:** Instead of choosing between a pure number table or a pure plot, `gt_plt_sparkline()` and `gt_plt_dist()` allow interactive density plots, histograms, and mini-charts directly inside table cells.
+
+### Tables vs. Charts
+
+Charts and tables serve opposite yet complementary cognitive purposes: \* **Charts** excel at showing high-level macro patterns, trends, slopes, and spatial distributions (answering *"What is the general shape or direction of the data?"*). \* **Tables** excel at structured lookups, precise numeric evaluation, and multi-variable multi-unit comparison (answering *"What is the exact value for X under condition Y?"*). \* **Complementary Role:** A well-designed report uses charts to grab attention and establish main trends, while embedded or supplementary `{gt}` tables back up those visual claims with verifiable, multi-metric precision.
+
+### When to Prefer Tables
+
+Tables are preferred over charts when: 1. **Precision & Reference Lookups:** Stakeholders need exact figures (e.g., financial P&L statements, exact budget allocations, or KPI scorecards). 2. **Multiple Units of Measurement:** Comparing metrics across different dimensions simultaneously (e.g., Dollar revenue `$`, Growth percentage `%`, Unit count `N`, and Likert scores) where a single axis chart would be impossible. 3. **Small Sample Sizes / Few Categories:** Charts built with only 3–4 data points look sparse or wasteful, whereas a compact table displays the numbers elegantly without unnecessary visual overhead.
+:::
+
+------------------------------------------------------------------------
+
+# Prompt 2: Descriptive Statistics with `gt` and `gtExtra`
+
+## Prompt text
+
+> **Prompt 2:** Use the synthetic data introduced this week for the lecture. Pick some variables of your interest from the data and share some descriptive statistics using `gt` and `gtExtra` functions together to show numbers and small charts in one table.
+
+## Data Preparation and Summary Table
+
+Below, we simulate synthetic departmental marketing performance data, group by department, calculate summary statistics, and pipe the result into `{gt}` and `{gtExtras}`.
+
+```{r}
+#| label: tbl-summary
+#| tbl-cap: "Departmental Campaign Performance & Budget Distribution"
+
+library(tidyverse)
+library(gt)
+library(gtExtras)
+
+# 1. Create Synthetic Dataset
+set.seed(101)
+synthetic_data <- tibble(
+  Department = rep(c("Digital Ads", "Content Marketing", "Email Campaigns", "Social Media"), each = 25),
+  Campaign_Budget = c(rnorm(25, 45000, 8000), rnorm(25, 28000, 5000), 
+                      rnorm(25, 18000, 3000), rnorm(25, 35000, 6000)),
+  ROAS = c(runif(25, 2.8, 5.2), runif(25, 1.5, 3.8), 
+           runif(25, 3.2, 6.5), runif(25, 2.0, 4.5)),
+  Conversions = c(sample(150:500, 25, replace = TRUE), sample(80:300, 25, replace = TRUE),
+                  sample(200:700, 25, replace = TRUE), sample(100:450, 25, replace = TRUE))
+)
+
+# 2. Data Wrangling: Grouping & Creating Nested List Columns for Sparklines
+table_data <- synthetic_data |> 
+  group_by(Department) |> 
+  summarise(
+    Active_Campaigns = n(),
+    Avg_Budget = mean(Campaign_Budget),
+    Avg_ROAS = mean(ROAS),
+    Total_Conversions = sum(Conversions),
+    Budget_Distribution = list(Campaign_Budget),
+    .groups = "drop"
+  )
+
+# 3. Build Table using {gt} and {gtExtras}
+table_data |> 
+  gt(rowname_col = "Department") |> 
+  tab_header(
+    title = md("**Departmental Campaign Performance & Budget Distribution**"),
+    subtitle = "Summary of campaign expenditures, return on ad spend (ROAS), and budget variance"
+  ) |> 
+  tab_stubhead(label = "Department") |> 
+  cols_label(
+    Active_Campaigns = "Campaign Count",
+    Avg_Budget = "Mean Budget",
+    Avg_ROAS = "Mean ROAS (x)",
+    Total_Conversions = "Total Conversions",
+    Budget_Distribution = "Budget Density"
+  ) |> 
+  tab_spanner(
+    label = "Performance Metrics",
+    columns = c(Active_Campaigns, Avg_Budget, Avg_ROAS, Total_Conversions)
+  ) |> 
+  fmt_currency(
+    columns = Avg_Budget,
+    currency = "USD",
+    decimals = 2
+  ) |> 
+  fmt_number(
+    columns = Avg_ROAS,
+    decimals = 2
+  ) |> 
+  fmt_integer(
+    columns = c(Active_Campaigns, Total_Conversions)
+  ) |> 
+  gt_plt_dist(
+    column = Budget_Distribution,
+    type = "density",
+    line_color = "#112E51",
+    fill_color = "#82A0C2"
+  ) |> 
+  data_color(
+    columns = Avg_Budget,
+    palette = "Blues"
+  ) |> 
+  tab_footnote(
+    footnote = "ROAS calculated as Gross Revenue divided by Ad Spend.",
+    locations = cells_column_labels(columns = Avg_ROAS)
+  ) |> 
+  tab_source_note(
+    source_note = "Source: M05 MSDM Synthetic Campaign Performance Dataset (2026)."
+  ) |> 
+  gt_theme_538(quiet = TRUE)
+```
+
+As illustrated in @tbl-summary[^1], the **Digital Ads** channel maintains the highest mean budget allocation, while **Email Campaigns** yield the highest overall return on ad spend (ROAS).
+
+[^1]: Summary metrics calculated across $N=100$ total simulated campaign observations.
+
+------------------------------------------------------------------------
+
+# Prompt 3: Value in Written Reports and Presentation Slides
+
+## Prompt text
+
+> **Prompt 3:** Explain why the table is worth adding to your MSDM project written report or presentation slides.
+
+## Practical Application
+
+Adding a styled table like @tbl-summary into an MSDM project report or presentation deck provides key operational benefits:
+
+1.  **Information Density without Executive Overload:** Marketing reports often get cluttered when separate bar charts are created for budget, ROAS, conversions, and variance. A single `{gt}` table condenses numerical metrics and inline distribution sparklines into one high-density view.
+2.  **Contextual Decision-Making:** Executives can instantly cross-reference exact financial figures (formatted in USD currency) with return ratios while simultaneously visualizing budget spread across channels.
+3.  **Reproducible Brand Compliance:** Utilizing `{gtExtras}` themes ensures that table styling remains standardized across slides and written reports, fully automated via Quarto rendering without manual formatting in Excel or PowerPoint.
+
+------------------------------------------------------------------------
+
+# Prompt 4: GitHub Pages Publication
+
+## Prompt text
+
+> **Prompt 4:** Publish the QMD file to the GitHub Page and add the URL here under this section.
+
+## Publication Link
+
+The rendered HTML version of this report is published at:
+
+- **GitHub Repository:** `https://github.com/Buenoalexa11/IBM6540`
+- **Live GitHub Pages URL:** `https://buenoalexa11.github.io/IBM6540/`
