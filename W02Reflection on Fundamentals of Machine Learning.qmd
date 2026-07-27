@@ -1,0 +1,382 @@
+---
+title: "W02 Reflection on Fundamentals of Machine Learning"
+subtitle: "Reflections and Hands-On Lab"
+author: "Alexa Bueno"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    toc-location: right-body
+    toc-float: true
+    toc-expand: true
+    number-sections: true
+    theme: cosmo
+    code-fold: true
+    code-summary: "Show code"
+    code-tools: true
+    code-overflow: wrap
+    link-external-newwindow: true
+    df-print: paged
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(broom)
+library(knitr)
+```
+
+# Introduction
+
+This report reflects on the main concepts introduced in the Machine Learning Fundamentals module. The module combined conceptual videos with hands-on modeling exercises in R. Through these materials, I learned how machine learning models are trained, evaluated, compared, and improved. I also learned how the tidymodels framework creates a consistent process for completing machine learning tasks in R.
+
+# Tidymodels and the Machine Learning Workflow
+
+## A New Approach to Machine Learning with tidymodels
+
+> **Prompt:** In Step 1, the textbook authors made a case for a new approach in machine learning with the tidymodels package. Summarize the video presentation.
+
+The presentation introduced **tidymodels** as a collection of R packages designed to support the complete machine learning process. Instead of using separate and inconsistent tools for preprocessing, model fitting, tuning, and evaluation, tidymodels provides a more unified system based on tidyverse principles.
+
+One of the main ideas I learned was that machine learning involves much more than selecting an algorithm. A complete project also requires splitting the data, preparing variables, fitting models, evaluating performance, tuning parameters, and eventually preparing the model for deployment. Tidymodels connects these steps through a consistent structure, which makes the code easier to read and reproduce.
+
+The presentation also emphasized that a model should be evaluated based on how well it performs on new data rather than only how closely it fits the training data. This connects tidymodels to concepts such as resampling, cross-validation, and the training and testing data budget.
+
+## What I Learned About tidymodels
+
+> **Prompt:** What did you learn about tidymodels? How is it different from others, such as caret? What are the strengths and weaknesses of tidymodels?
+
+Tidymodels is an ecosystem rather than one individual modeling package. It includes packages for different parts of the process, such as `rsample` for data splitting, `recipes` for preprocessing, `parsnip` for model specification, `workflows` for combining steps, `tune` for hyperparameter tuning, and `yardstick` for model evaluation.
+
+A major difference between tidymodels and `caret` is organization. Caret places many modeling functions into one large package, while tidymodels separates tasks into smaller packages with specific purposes. Tidymodels also uses syntax that is more consistent with the tidyverse. This can make the workflow easier to understand, especially when working with tibbles, pipes, and reusable objects.
+
+| Area | tidymodels | caret |
+|---|---|---|
+| Design | Collection of connected packages | One main package |
+| Syntax | Consistent with tidyverse principles | Older modeling interface |
+| Preprocessing | Uses recipes | Uses preprocessing options inside training functions |
+| Model definition | Separates the model specification from the engine | Model method is usually selected during training |
+| Workflow | Combines recipe and model into one workflow | Often handled within one training call |
+| Learning curve | More steps at first, but clearer structure | Can be faster for simple models |
+
+The strengths of tidymodels include readable syntax, modular design, reproducibility, and the ability to switch model engines without changing the entire workflow. A weakness is that there are many separate packages and functions to learn. A beginner may initially find the framework more complicated than fitting a model directly with base R. However, the additional structure becomes helpful when a project grows more complex.
+
+::: {.callout-tip}
+## Main Takeaway
+
+Tidymodels may require more setup than a basic `lm()` call, but it creates a workflow that is easier to reproduce, compare, tune, and maintain.
+:::
+
+## The tidymodels Workflow
+
+> **Prompt:** What does the workflow look like when you use tidymodels for machine learning?
+
+A typical tidymodels workflow begins by defining the problem and identifying the outcome variable that the model will predict. The data is then divided into training and testing sets. The training set is used for exploration, preprocessing, model fitting, resampling, and tuning. The testing set is saved until the end so it can provide a more honest estimate of performance on unseen data.
+
+The next step is preprocessing. A recipe can be used to define transformations such as creating dummy variables, normalizing predictors, handling missing values, or removing variables with little variation. After preprocessing, the model is defined with `parsnip`. The user specifies the general model type, its mode, and the computational engine.
+
+The recipe and model can then be combined into a workflow. Cross-validation or another resampling method can be applied to compare models and tune hyperparameters. Once the best model is selected, it is fitted to the full training set and evaluated once on the test set.
+
+The overall process can be summarized as:
+
+1. Define the prediction problem.
+2. Split the data into training and testing sets.
+3. Create preprocessing steps.
+4. Specify the model.
+5. Combine the recipe and model into a workflow.
+6. Resample and tune the model.
+7. Compare performance metrics.
+8. Finalize the selected model.
+9. Evaluate it on the test set.
+10. Prepare it for deployment and monitoring.
+
+## MLOps and vetiver
+
+> **Prompt:** What is MLOps in the machine learning workflow? What does the `{vetiver}` package do for MLOps?
+
+MLOps refers to the practices used to move a machine learning model beyond experimentation and into real use. Building an accurate model is only one part of a machine learning project. A production model must also be versioned, deployed, documented, monitored, and updated when its performance changes.
+
+The `{vetiver}` package helps R users prepare trained models for these later stages. It can create a standardized model object that stores the fitted model and important metadata. It also supports model documentation, versioning, deployment through an API, and monitoring model performance after deployment.
+
+This matters because the relationship between predictors and an outcome can change over time. A model that performs well when it is first created may become less reliable as new customers, behaviors, or market conditions appear. MLOps creates a process for detecting those changes and maintaining the model rather than treating modeling as a one-time task.
+
+# Machine Learning Fundamentals
+
+## A Gentle Introduction to Machine Learning
+
+> **Prompt:** For the video *A Gentle Introduction to Machine Learning*, list key concepts, define them, explain them, and state why the concepts matter in machine learning.
+
+The first video described machine learning as the process of using data to make predictions or classifications. A classification problem predicts a category, while a regression problem predicts a numeric value. For example, a decision tree can classify whether someone belongs to a group, while a regression line can predict an outcome such as running speed.
+
+An important distinction is the difference between **training data** and **testing data**. Training data is used to build the model, while testing data is used to evaluate how well the model performs on unseen observations. A model can fit its training data extremely well but still perform poorly on new data. This is known as overfitting.
+
+The video also introduced the bias-variance trade-off. A model that is too simple may fail to capture a meaningful relationship, while a model that is too complex may learn random noise. These ideas matter because the goal of machine learning is not to create the most complicated model. The goal is to select a model that generalizes well to new data.
+
+## Cross-Validation
+
+> **Prompt:** For the video *Machine Learning Fundamentals: Cross Validation*, list key concepts, define them, explain them, and state why the concepts matter in machine learning.
+
+Cross-validation is a resampling method used to estimate how well a model will perform on unseen data. Instead of evaluating a model using only one training and validation split, cross-validation divides the training data into several groups, often called folds.
+
+In k-fold cross-validation, the model is trained on all but one fold and evaluated on the remaining fold. This process repeats until every fold has been used for evaluation. The performance values are then combined to create a more stable estimate.
+
+Common forms include four-fold cross-validation, ten-fold cross-validation, and leave-one-out cross-validation. In leave-one-out cross-validation, one observation is held out at a time. Cross-validation is also useful for selecting tuning parameters because it allows multiple parameter values to be compared across repeated data splits.
+
+This matters because the performance from one split may depend heavily on which observations happen to be placed in each group. Cross-validation reduces reliance on one split and gives a more dependable estimate of model performance.
+
+## The Confusion Matrix
+
+> **Prompt:** For the video *Machine Learning Fundamentals: The Confusion Matrix*, list key concepts, define them, explain them, and state why the concepts matter in machine learning.
+
+A confusion matrix is a table used to evaluate classification models by comparing predicted classes with actual classes. For binary classification, it contains four possible outcomes:
+
+- A **true positive** occurs when the model correctly predicts a positive case.
+- A **true negative** occurs when the model correctly predicts a negative case.
+- A **false positive** occurs when the model predicts positive but the actual case is negative.
+- A **false negative** occurs when the model predicts negative but the actual case is positive.
+
+Correct classifications appear along the main diagonal of the matrix, while incorrect classifications appear outside the diagonal. The matrix can also be expanded for problems involving more than two categories.
+
+A confusion matrix matters because overall accuracy does not explain what types of mistakes a model makes. Two models could have similar accuracy but produce very different numbers of false positives and false negatives. The preferred model therefore depends on which type of error is more costly in the specific application.
+
+## Sensitivity and Specificity
+
+> **Prompt:** For the video *Machine Learning Fundamentals: Sensitivity and Specificity*, list key concepts, define them, explain them, and state why the concepts matter in machine learning.
+
+Sensitivity and specificity are evaluation measures calculated from the confusion matrix. **Sensitivity**, also called recall or the true positive rate, measures the proportion of actual positive cases that the model correctly identifies.
+
+$$
+\text{Sensitivity} = \frac{TP}{TP + FN}
+$$
+
+**Specificity**, also called the true negative rate, measures the proportion of actual negative cases that the model correctly identifies.
+
+$$
+\text{Specificity} = \frac{TN}{TN + FP}
+$$
+
+High sensitivity means that the model produces relatively few false negatives. High specificity means that the model produces relatively few false positives. There is often a trade-off between the two because changing the classification threshold may improve one while reducing the other.
+
+These concepts matter because the appropriate metric depends on the consequences of an error. For a medical screening test, high sensitivity may be especially important because missing a true case could be dangerous. In another setting, high specificity may be preferred when false alarms are costly. This also shows why accuracy alone may be misleading, especially when the classes are imbalanced.
+
+## Bias and Variance
+
+> **Prompt:** For the video *Machine Learning Fundamentals: Bias and Variance*, list key concepts, define them, explain them, and state why the concepts matter in machine learning.
+
+Bias describes error caused by a model being too simple to capture the underlying relationship in the data. A high-bias model may underfit both the training and testing data. Variance describes how much a model's results change when it is trained on different samples. A highly flexible model may have low training error but high variance because it learns details and noise that do not generalize.
+
+Overfitting occurs when a model fits the training data extremely closely but performs poorly on new observations. The goal is to find a balance between underfitting and overfitting. This is sometimes described as the “sweet spot” between bias and variance.
+
+Methods such as regularization, bagging, and boosting can help manage this trade-off. These concepts matter because model complexity should be selected based on generalization performance, not only training performance.
+
+# Practice 3.1 – Explore Base R Modeling
+
+```{r}
+library(tidyverse)
+library(broom)
+
+fit_simple <- lm(mpg ~ wt, data = mtcars)
+
+tidy(fit_simple)
+glance(fit_simple)
+```
+
+The regression results show that vehicle weight is a statistically significant predictor of fuel economy. The coefficient for weight is approximately **-5.34**, meaning that for every one-unit increase in vehicle weight (1,000 pounds), the predicted fuel economy decreases by about **5.34 MPG**. The model produced an **R² of approximately 0.753**, meaning that weight explains about **75.3%** of the variation in miles per gallon.
+
+```{r}
+simple_augmented <- augment(fit_simple)
+
+head(simple_augmented, 10)
+```
+
+The `augment()` function adds fitted values, residuals, leverage values, Cook's distance, and standardized residuals to each observation. This information helps evaluate model fit and identify potentially influential observations.
+
+```{r}
+augment(fit_simple) |>
+  ggplot(aes(.fitted, .resid)) +
+  geom_point(color = "#005030") +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "#FFB81C"
+  ) +
+  theme_minimal()
+```
+
+The residuals appear randomly scattered around the zero line with no strong curved pattern, suggesting the assumptions of linear regression are reasonably satisfied. An ideal residual plot would show random scatter with constant spread, indicating homoskedasticity.
+
+```{r}
+fit_expanded <- lm(mpg ~ wt + hp + cyl, data = mtcars)
+
+tidy(fit_expanded)
+
+bind_rows(
+  glance(fit_simple) |> mutate(model = "Simple"),
+  glance(fit_expanded) |> mutate(model = "Expanded")
+)
+```
+
+Adding horsepower and the number of cylinders improved the model. The **R² increased from 0.753 to 0.843**, indicating that the expanded model explains approximately **84.3%** of the variation in fuel economy. The residual standard error also decreased, suggesting a better model fit. Weight remained statistically significant, while horsepower and cylinders were not statistically significant after accounting for weight, indicating that weight is the strongest predictor of fuel economy.
+
+## Practice 3.2 – Customer Spending Model
+
+```{r}
+library(tidyverse)
+library(broom)
+
+set.seed(42)
+n <- 1000
+
+customer_data <- tibble(
+  customer_id = 1:n,
+  tenure = sample(1:60, n, replace = TRUE),
+  monthly_spend = round(rnorm(n, mean = 85, sd = 25), 2),
+  num_products = sample(
+    1:5,
+    n,
+    replace = TRUE,
+    prob = c(0.3, 0.3, 0.2, 0.1, 0.1)
+  ),
+  num_complaints = rpois(n, lambda = 0.5),
+  last_login_days = sample(1:90, n, replace = TRUE),
+  region = sample(
+    c("West", "East", "South", "Midwest"),
+    n,
+    replace = TRUE
+  ),
+  churn = factor(
+    ifelse(
+      0.05 * num_complaints +
+        0.02 * last_login_days -
+        0.015 * tenure -
+        0.005 * monthly_spend +
+        rnorm(n, 0, 0.5) > 0.3,
+      "yes",
+      "no"
+    )
+  )
+)
+
+glimpse(customer_data)
+```
+
+The simulated dataset contains 1,000 customer records and eight variables. These include customer tenure, monthly spending, number of products, complaints, days since the last login, region, and churn status. The purpose of this exercise is to determine whether these customer characteristics can predict monthly spending.
+
+## Initial Model
+
+```{r}
+spend_fit <- lm(
+  monthly_spend ~ tenure + num_products + region,
+  data = customer_data
+)
+
+tidy(spend_fit)
+glance(spend_fit)
+```
+
+The initial model tested whether tenure, number of products, and region predicted monthly spending. None of the predictors were statistically significant because all of their p-values were greater than 0.05. For example, tenure had a p-value of 0.439, while the number of products had a p-value of 0.674.
+
+The model had an R² of approximately **0.0036**, meaning that it explained only about **0.36%** of the variation in monthly spending. The adjusted R² was negative at **-0.0014**, which suggests that the model performed no better than a model using only the average monthly spending value. The overall model was also not statistically significant, with a p-value of **0.613**.
+
+## Using `augment()`
+
+```{r}
+spend_augmented <- augment(spend_fit)
+
+head(spend_augmented, 10)
+```
+
+The `augment()` function added fitted values, residuals, leverage values, Cook’s distance, and standardized residuals to each observation. The fitted values were mostly close to the mid-$80 range, while the actual monthly spending values varied much more widely. Some observations had large residuals, such as approximately -43 or +40, showing that the model produced poor predictions for several customers.
+
+## Residual Plot
+
+```{r}
+augment(spend_fit) |>
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.3, color = "#005030") +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "#FFB81C"
+  ) +
+  labs(
+    title = "Residuals: Monthly Spend Model",
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  theme_minimal()
+```
+
+The fitted values are concentrated within a narrow range, while the residuals are widely spread above and below zero. This indicates that the model predicts similar spending values for most customers even though their actual spending varies substantially. Although there may not be a strong curved pattern, the large spread of residuals shows that tenure, number of products, and region do not explain monthly spending well.
+
+## Expanded Model
+
+```{r}
+spend_fit_expanded <- lm(
+  monthly_spend ~ tenure +
+    num_products +
+    region +
+    num_complaints +
+    last_login_days,
+  data = customer_data
+)
+
+tidy(spend_fit_expanded)
+glance(spend_fit_expanded)
+```
+
+The expanded model added the number of complaints and the number of days since the last login. However, neither variable was statistically significant. The p-value for number of complaints was **0.857**, and the p-value for days since the last login was **0.821**. The original predictors also remained statistically insignificant.
+
+The expanded model had an R² of approximately **0.0037**, meaning it explained only about **0.37%** of the variation in monthly spending. Its adjusted R² decreased to **-0.0034**, indicating that adding the two new predictors did not improve the model after accounting for its additional complexity. The expanded model was not statistically significant overall, with a p-value of **0.820**.
+
+## Expanded Residual Plot
+
+```{r}
+augment(spend_fit_expanded) |>
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point(alpha = 0.3, color = "#005030") +
+  geom_hline(
+    yintercept = 0,
+    linetype = "dashed",
+    color = "#FFB81C"
+  ) +
+  labs(
+    title = "Residuals: Expanded Monthly Spend Model",
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  theme_minimal()
+```
+
+The expanded residual plot should look very similar to the initial residual plot. The residuals remain widely spread around zero, and the fitted values remain clustered within a narrow range. This confirms that adding complaints and last-login activity did not meaningfully improve the model’s predictions.
+
+## Model Comparison
+
+```{r}
+bind_rows(
+  glance(spend_fit) |>
+    mutate(model = "Initial"),
+  glance(spend_fit_expanded) |>
+    mutate(model = "Expanded")
+) |>
+  select(
+    model,
+    r.squared,
+    adj.r.squared,
+    sigma,
+    statistic,
+    p.value
+  )
+```
+
+The R² increased only slightly from **0.00358** in the initial model to **0.00366** in the expanded model. However, the adjusted R² became more negative, decreasing from **-0.00144** to **-0.00337**. The residual standard error remained approximately **25.9** in both models.
+
+Overall, the expanded model did not improve predictive performance. The customer variables included in these models do not appear to have a meaningful relationship with monthly spending in this simulated dataset.
