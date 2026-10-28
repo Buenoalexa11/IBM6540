@@ -102,7 +102,7 @@ As @tbl-ppt shows, Revealjs is the better choice when a presentation is **data-d
 
 ### Link
 
-**Published presentation:** <https://buenoalexa11.github.io/IBM6540/Joining%20Customer%20Data%20in%20R.html>
+**Published presentation:** <https://buenoalexa11.github.io/IBM6540/M06/Bueno-Alexa-M06-revealjs.html>
 
 ### What the Presentation Is About
 
@@ -281,6 +281,5 @@ This module taught me to handle both ends of an analysis. Advanced wrangling fun
 
 # Appendix
 
-- **Published presentation:** <https://buenoalexa11.github.io/IBM6540/Joining%20Customer%20Data%20in%20R.html>
-
+- **Published presentation:** <https://buenoalexa11.github.io/IBM6540/Bueno-Alexa-M06-revealjs.html>
 - **GitHub repository:** <https://github.com/Buenoalexa11/IBM6540>
