@@ -1,0 +1,130 @@
+---
+title: "Joining Customer Data in R"
+subtitle: "Using dplyr joins to answer marketing questions"
+author: "Alexa Bueno"
+date: today
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    footer: "IBM 6540 | M06 Revealjs"
+    code-line-numbers: true
+    embed-resources: true
+    transition: slide
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(knitr)
+
+customers <- tibble(
+  customer_id = 1:5,
+  name        = c("Ana", "Ben", "Cara", "Dev", "Eli"),
+  segment     = c("New", "Loyal", "Loyal", "New", "Lapsed")
+)
+
+orders <- tibble(
+  order_id    = 101:107,
+  customer_id = c(1, 1, 2, 3, 3, 3, 6),
+  amount      = c(25, 40, 60, 15, 30, 45, 50)
+)
+```
+
+## The Business Question
+
+Our customer info and our order history live in **two separate tables**.
+
+::: {.incremental}
+- Who are our biggest spenders?
+- Which segment brings in the most revenue?
+- Who has never bought anything?
+:::
+
+::: {.notes}
+Real business data is almost always split across related tables, so joining is a core skill.
+:::
+
+## Two Tables, One Key
+
+:::: {.columns}
+::: {.column width="50%"}
+**Customers**
+
+```{r}
+kable(customers)
+```
+:::
+
+::: {.column width="50%"}
+**Orders**
+
+```{r}
+kable(orders)
+```
+:::
+::::
+
+Both tables share `customer_id`.
+
+## Joining the Tables
+
+```{r}
+#| echo: true
+#| code-line-numbers: "2"
+customer_orders <- customers |>
+  left_join(orders, by = join_by(customer_id))
+```
+
+`left_join()` keeps **every customer** and adds their orders.
+
+## Total Spend per Customer
+
+```{r}
+spend <- customer_orders |>
+  group_by(name, segment) |>
+  summarise(total_spend = sum(amount, na.rm = TRUE), .groups = "drop") |>
+  arrange(desc(total_spend))
+
+kable(spend, col.names = c("Customer", "Segment", "Total Spend ($)"))
+```
+
+## Revenue by Segment
+
+```{r}
+#| fig-width: 8
+#| fig-height: 4.5
+customer_orders |>
+  group_by(segment) |>
+  summarise(total_spend = sum(amount, na.rm = TRUE)) |>
+  ggplot(aes(x = reorder(segment, total_spend), y = total_spend, fill = segment)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  labs(x = NULL, y = "Total spend ($)") +
+  theme_minimal(base_size = 16)
+```
+
+**Loyal** customers drive most of the revenue.
+
+## Who Never Ordered?
+
+```{r}
+#| echo: true
+customers |>
+  anti_join(orders, by = join_by(customer_id))
+```
+
+. . .
+
+Dev and Eli are a ready-made **re-engagement list**.
+
+## Key Takeaways
+
+::: {.incremental}
+1. `left_join()` adds information while keeping every row
+2. `anti_join()` finds what is missing
+3. Charts and tables here are **reproducible**: they update when the data does
+:::

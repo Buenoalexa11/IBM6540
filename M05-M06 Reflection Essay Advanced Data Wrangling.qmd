@@ -1,0 +1,285 @@
+---
+title: "M05-M06 Reflection Essay Advanced Data Wrangling"
+author: "Alexa Bueno"
+date: today
+format: 
+  html: 
+    toc: true
+    toc-depth: 4
+    toc-expand: 1
+    toc-location: right-body
+    toc-title: "Contents"
+    number-sections: true
+    code-link: true
+    code-fold: show
+    code-tools: true
+    code-overflow: wrap
+    theme: cosmo
+    highlight-style: github
+    df-print: paged
+    embed-resources: true
+editor: visual
+execute: 
+  freeze: auto
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+library(tidyverse)
+library(knitr)
+```
+
+# Introduction
+
+This module covered two skill sets that work together: **presenting** results with Quarto Revealjs slides and **preparing** data with advanced wrangling tools in `dplyr`. This report covers what I learned about Revealjs, links to the presentation I built, and walks through three wrangling functions from different categories with code and output.
+
+# Revealjs Presentations
+
+## My Impression of Revealjs
+
+> **Prompt:** In Step 1, you learned how to design stunning presentation slides with Quarto. What's your impression of the Revealjs presentation? Describe its capabilities as you learned from the presentations. What are its strengths and weaknesses compared with PPT?
+
+### First Impression
+
+My first impression was that Revealjs lets a data analyst build slides **the same way they build reports**. Instead of copying charts out of R and pasting them into PowerPoint, the slides *run the code themselves*. The chart on a slide is always the chart the data produces. This felt like a big shift from how I have built decks at work, where numbers go stale as soon as the underlying data changes.
+
+### Capabilities
+
+Revealjs turns a Quarto document into an HTML slide deck. The main capabilities I learned:
+
+- **Markdown-based slides:** each `##` heading starts a new slide, so the deck is written like a normal document.
+- **Live code output:** R chunks run when the deck renders, so charts and tables are reproducible.
+- **Code presentation:** code can be shown with syntax highlighting and *line highlighting* (e.g., `code-line-numbers: "2-3"`) to walk an audience through it step by step.
+- **Layout tools:** columns (`:::: {.columns}`), absolute positioning, and background images or colors.
+- **Incremental reveals:** fragments and `incremental: true` lists show points one at a time.
+- **Speaker notes:** `::: {.notes}` blocks appear only in speaker view (press `S`).
+- **Themes and styling:** built-in themes (e.g., `simple`, `moon`, `serif`) plus custom SCSS.
+- **Transitions and auto-animate:** smooth movement between slides.
+- **Sharing:** the deck is a web page, so it can be published to GitHub Pages and opened by anyone with a link. It can also be printed to PDF.
+
+### Revealjs vs. PowerPoint
+
+::: panel-tabset
+#### Strengths of Revealjs
+
+- **Reproducible:** charts and tables update automatically when the data changes.
+- **Version control:** the `.qmd` file is plain text, so it works with Git and GitHub.
+- **Built for code:** code looks clean and readable, which PowerPoint does poorly.
+- **Easy to share:** one link instead of emailing large files.
+- **Free and consistent:** no license needed, and the theme keeps every slide on brand.
+
+#### Weaknesses of Revealjs
+
+- **Learning curve:** layout requires Markdown and some CSS instead of drag-and-drop.
+- **Less precise design control:** placing a shape or image exactly where I want it takes more effort.
+- **Harder collaboration with non-coders:** coworkers who do not use R or Quarto cannot easily edit the deck.
+- **Rendering issues:** an error in one code chunk can stop the whole deck from rendering.
+:::
+
+| Feature | Revealjs (Quarto) | PowerPoint |
+|:-----------------------|:-----------------------|:-----------------------|
+| Building slides | Code and Markdown | Drag and drop |
+| Charts | Generated from data, always current | Pasted in, can go stale |
+| Version control | Git-friendly plain text | Binary file |
+| Sharing | Web link | File attachment |
+| Ease for non-coders | Low | High |
+
+: Revealjs compared with PowerPoint
+
+::: callout-tip
+## My Takeaway
+
+As @tbl-ppt shows, Revealjs is the better choice when a presentation is **data-driven and will be updated**, such as a weekly performance report. PowerPoint is still easier for a **one-time, design-heavy** deck that non-technical teammates need to edit.
+:::
+
+## My Revealjs Presentation
+
+> **Prompt:** In Step 2, you were asked to create a Revealjs presentation. Provide a link to the presentation you published on the web. Add at least one reproducible chart or table in the presentation. Briefly describe what the presentation is about. What did you learn from the experience of the Revealjs presentation?
+
+### Link
+
+**Published presentation:** <https://buenoalexa11.github.io/IBM6540/M06/Bueno-Alexa-M06-revealjs.html>
+
+### What the Presentation Is About
+
+The presentation, *Joining Customer Data in R*, explains how a marketing team can combine a customer table with an order table to answer business questions. It includes:
+
+1.  The two sample tables and their shared key, `customer_id`
+2.  A `left_join()` that builds one table of customers and their orders
+3.  A **reproducible table** of total spend per customer, created with code
+4.  A **reproducible bar chart** of total spend by customer segment, built with `ggplot2`
+5.  An `anti_join()` that finds customers who never ordered, for a re-engagement campaign
+
+### What I Learned
+
+- **Slides are just a different output format.** The same Quarto skills I use for HTML reports, including chunks, callouts, and cross-references, work in slides with only small changes.
+- **Less text per slide.** A report can hold paragraphs, but a slide works best with one idea, one chart, or a short list. I had to cut my writing down a lot.
+- **Chunk options matter more.** I used `echo: false` on most chart slides so the audience sees the result, not the code, and showed code only on the slide that teaches the join.
+- **Publishing workflow.** Rendering with `embed-resources: true`, pushing to GitHub, and turning on GitHub Pages gave me a link I can share with anyone.
+
+# Advanced Data Wrangling
+
+> **Prompt:** My advanced wrangling lecture in Step 3 introduced new concepts, including how to join relational databases. Pick three different functions, each from a different category. Describe when to use them and give one coding example along with an output for each function.
+
+## Sample Data
+
+Relational data means information is split across several tables that are connected by a **key**. To show this, I created two small marketing tables that share the key `customer_id`, plus two email lists.
+
+```{r}
+#| label: data
+
+customers <- tibble(
+  customer_id = 1:5,
+  name        = c("Ana", "Ben", "Cara", "Dev", "Eli"),
+  segment     = c("New", "Loyal", "Loyal", "New", "Lapsed")
+)
+
+orders <- tibble(
+  order_id    = 101:107,
+  customer_id = c(1, 1, 2, 3, 3, 3, 6),
+  amount      = c(25, 40, 60, 15, 30, 45, 50)
+)
+```
+
+::: panel-tabset
+### Customers
+
+```{r}
+#| label: tbl-customers
+#| tbl-cap: "Customer table (one row per customer)"
+kable(customers)
+```
+
+### Orders
+
+```{r}
+#| label: tbl-orders
+#| tbl-cap: "Order table (one row per order)"
+kable(orders)
+```
+:::
+
+Notice that customers 4 and 5 have no orders in @tbl-orders, and order 107 belongs to customer 6, who is missing from @tbl-customers. These mismatches are exactly what joins help find.
+
+The three functions I picked each come from a different category:
+
+| Category       | Function      | What it does                        |
+|:---------------|:--------------|:------------------------------------|
+| Mutating join  | `left_join()` | Adds columns from another table     |
+| Filtering join | `anti_join()` | Keeps rows that have **no** match   |
+| Set operation  | `intersect()` | Keeps rows found in **both** tables |
+
+: The three functions covered in this section
+
+## Mutating Join: `left_join()`
+
+**When to use it:** Use `left_join()` when you want to keep **every row of your main table** and add matching information from a second table. It is the most common join because it never loses observations from the main table. Rows with no match get `NA`.
+
+```{r}
+#| label: tbl-left-join
+#| tbl-cap: "Every customer kept, with their orders added"
+
+customer_orders <- customers |>
+  left_join(orders, by = join_by(customer_id))
+
+kable(customer_orders)
+```
+
+@tbl-left-join keeps all five customers. Dev and Eli show `NA` because they never ordered, and order 107 is dropped because customer 6 is not in the main table.
+
+I can then answer a real business question: *How much has each customer spent?*
+
+```{r}
+#| label: tbl-spend
+#| tbl-cap: "Total spend per customer"
+
+customer_orders |>
+  group_by(name, segment) |>
+  summarise(
+    orders      = sum(!is.na(order_id)),
+    total_spend = sum(amount, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(total_spend)) |>
+  kable()
+```
+
+::: callout-warning
+## Watch the Row Count
+
+If the key is not unique in the second table, a join can **add** rows. Here, Ana has two orders, so she appears twice. I always compare `nrow()` before and after a join to catch unexpected duplicates.
+:::
+
+## Filtering Join: `anti_join()`
+
+**When to use it:** Use `anti_join()` to find rows in one table that have **no match** in another. It does not add any columns; it only filters. It is useful for finding gaps and data quality problems.
+
+```{r}
+#| label: tbl-anti-join
+#| tbl-cap: "Customers who have never placed an order"
+
+no_orders <- customers |>
+  anti_join(orders, by = join_by(customer_id))
+
+kable(no_orders)
+```
+
+@tbl-anti-join gives a ready-made **re-engagement list**: Dev and Eli could receive a first-purchase discount. Flipping the order of the tables finds a data quality problem instead:
+
+```{r}
+#| label: tbl-orphan
+#| tbl-cap: "Orders that belong to an unknown customer"
+
+orders |>
+  anti_join(customers, by = join_by(customer_id)) |>
+  kable()
+```
+
+Order 107 points to a customer who is not in our customer table, which should be investigated before reporting revenue.
+
+## Set Operation: `intersect()`
+
+**When to use it:** Set operations compare two tables with the **same columns** and treat each row as a whole. `intersect()` keeps only the rows that appear in **both** tables. Related functions are `union()` (rows in either table) and `setdiff()` (rows in the first table but not the second).
+
+```{r}
+#| label: email-lists
+
+march_list <- tibble(email = c("ana@example.com", "ben@example.com", "cara@example.com"))
+april_list <- tibble(email = c("ben@example.com", "cara@example.com", "dev@example.com"))
+```
+
+```{r}
+#| label: tbl-intersect
+#| tbl-cap: "Customers who opened both the March and April emails"
+
+intersect(march_list, april_list) |>
+  kable()
+```
+
+@tbl-intersect shows the two most engaged subscribers, who opened both campaigns. For comparison:
+
+```{r}
+#| label: set-compare
+
+union(march_list, april_list)    # opened at least one email
+setdiff(march_list, april_list)  # opened March but not April
+```
+
+::: callout-note
+## Joins vs. Set Operations
+
+Joins match rows using a **key** column. Set operations compare **entire rows** and require both tables to have the same columns.
+:::
+
+# Conclusion
+
+This module taught me to handle both ends of an analysis. Advanced wrangling functions like `left_join()`, `anti_join()`, and `intersect()` let me combine and compare tables the way real business data is stored, across several related tables. Revealjs then lets me present those results in reproducible slides that update when the data does.
+
+# Appendix
+
+- **Published presentation:** <https://buenoalexa11.github.io/IBM6540/Bueno-Alexa-M06-revealjs.html>
+- **GitHub repository:** <https://github.com/Buenoalexa11/IBM6540>
